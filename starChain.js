@@ -110,13 +110,13 @@ app.post('/requestValidation/', (req, res) => {
   else {
   	  const address = req.body._address;
   	  const requestTimeStamp = new Date().getTime().toString().slice(0,-3);
-  	  const validationWindowInMin = 10;
+  	  const validationWindow = 600;
   	  const message = `${address}:${requestTimeStamp}:starRegistry`;
   	  const validationData = {
   	  	address,
   	  	message,
   	  	requestTimeStamp,
-  	  	validationWindowInMin
+  	  	validationWindow
   	  }
   	  dbS.put(address, validationData, function(err) {
   	  	if(err) {
@@ -142,9 +142,9 @@ app.post('/message-signature/validate/', async (req, res) => {
   	    let starRequestValue = await starRequest(address);
   	    let timeNow = new Date().getTime().toString().slice(0,-3);
   	    let timeRequest = starRequestValue.requestTimeStamp;
-  	    let validWindow = starRequestValue.validationWindowInMin;
-  	    let timeDif = timeNow - (timeRequest + (validWindow * 60));
-  	    if(timeDif > 0) {
+  	    let validWindow = starRequestValue.validationWindow;
+  	    let timeDif = timeNow - timeRequest;
+  	    if(timeDif - validWindow > 0) {
   	  		res.send('Unforunately, the time period in which you were able to verify you address has passed. You can start a new request if you please.')
   	    }
   	    else {
@@ -154,7 +154,17 @@ app.post('/message-signature/validate/', async (req, res) => {
   	  		
   	  		else {
   	  			// Add star to the blockchain
-  	  			res.send('Great! You star request is confirmed and it is incorporated in the blockchain.');
+            let JSONresponse = {
+              "registerStar": true,
+              "status": {
+                address,
+                "requestTimeStamp": timeRequest,
+                "message": starRequestValue.message,
+              },
+              "validationWindow": 600 - timeDif,
+              "messageSignature": "valid"
+            }
+  	  			res.send(JSONresponse);
   	  		}
   	    }
   	}
@@ -174,4 +184,3 @@ const starRequest = (address) => {
 		});
 	})
 }
-
