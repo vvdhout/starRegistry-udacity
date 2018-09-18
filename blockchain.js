@@ -152,6 +152,37 @@ class Blockchain {
 		})
 	}
 
+	getStarWithAddress(address) {
+		return new Promise((resolve,reject) => {
+			let starBlocks = [];
+			let stream = db.createReadStream();
+			stream.on('data', function(data) {
+				if(data.value._body.address === address) {
+					starBlocks.push(data.value);
+				}
+			}).on('error', function(err) {
+				reject(err)
+			}).on('close', () => {
+				resolve(starBlocks)
+			})
+		})
+	}
+
+	getStarWithHash(hash) {
+		return new Promise((resolve,reject) => {
+			let starBlock = {};
+			let stream = db.createReadStream();
+			stream.on('data', function(data) {
+				if(data.value.hash === hash) {
+					starBlock = data.value;
+				}
+			}).on('error', function(err) {
+				reject(err)
+			}).on('close', () => {
+				resolve(starBlock)
+			})
+		})
+	}
 
 }
 
@@ -162,7 +193,7 @@ class Block {
 		this.height = 0;
 		this.previousBlockHash = '';
 		this.hash = '';
-		this.data = data;
+		this._body = data;
 	}
 }
 
