@@ -100,7 +100,7 @@ app.post('/requestValidation/', (req, res) => {
         address,
         message,
         requestTimeStamp,
-        validationWindowInMin
+        validationWindow
       }
       dbS.put(address, validationData, function(err) {
         if(err) {
@@ -123,7 +123,7 @@ app.post('/message-signature/validate/', async (req, res) => {
   else {
         let address = req.body._address;
         let signature = req.body._signature;
-        let starRequestValue = await validate.starRequest(address);
+        let starRequestValue = await starRequest(address);
         if(starRequestValue.registerStar) {
           res.send('This address has already been validated.');
         }
@@ -169,28 +169,29 @@ app.post('/message-signature/validate/', async (req, res) => {
 app.post('/block/', async (req, res) => {
   let r = req.body;
   if (r._address === '' || r._address === undefined || 
-    !r.dec|| typeof r.dec !== 'string' ||
-    !r.ra || typeof r.ra !== 'string' ||
-    !r.story || typeof r.story !== 'string' || new Buffer(story).length > 500) {
+    !r.star.dec|| typeof r.star.dec !== 'string' ||
+    !r.star.ra || typeof r.star.ra !== 'string' ||
+    !r.star.story || typeof r.star.story !== 'string' || new Buffer(r.star.story).length > 500) {
     res.send('Sorry, we experienced an error. Make sure that the data for all fields are strings and are not empty. Check the README.md for the endpoint documentation')
   }
   else {
     let value = await starRequest(r._address);
     if(!value.registerStar) {
-      res.send('Sorry, but this address has yet to been validated. Make sure you validate the address first by []')
+      res.send('Sorry, but this address has yet to been validated or is no longer validated because you just registered a star already. Make sure you validate the address.')
     }
     else {
       let starData = {
         address: r._address,
         star: {
-          ra: r.ra,
-          dec: r.dec,
-          story:  new Buffer(r.story).toString('hex')
+          ra: r.star.ra,
+          dec: r.star.dec,
+          story:  new Buffer(r.star.story).toString('hex')
         }
       }
       let success = await chain.addBlock(new Block(starData))
       if(success) {
-      res.send(success)
+        dbS.del(r._address);
+        res.send(success);
       }
       else {
         res.send('We were not able to add the block before requesting the return...')
@@ -199,20 +200,20 @@ app.post('/block/', async (req, res) => {
   }
 })
 
-app.get('/stars/address/:address', async (req, res) => {
-  let address = req.params.address;
+app.get('/stars/address:address', async (req, res) => {
+  let address = req.params.address.slice(1);
   let value = await chain.getStarWithAddress(address);
   res.send(value);
 })
 
-app.get('/stars/hash/:hash', async (req, res) => {
-  let hash = req.params.hash;
+app.get('/stars/hash:hash', async (req, res) => {
+  let hash = req.params.hash.slice(1);
   let value = await chain.getStarWithHash(hash);
   res.send(value);
 })
 
-app.get('/stars/height/:height', async (req, res) => {
-  let height = req.params.height;
+app.get('/stars/height:height', async (req, res) => {
+  let height = req.params.height.slice(1);
   let value = await chain.getBlock(height);
   res.send(value);
 })
