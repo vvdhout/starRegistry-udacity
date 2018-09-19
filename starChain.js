@@ -45,6 +45,8 @@ const starRequest = (address) => {
   })
 }
 
+const checkASCII = ((string) => /^[\x00-\x7F]*$/.test(string))
+
 app.listen(8000, () => {
   console.log('App is listening on port 8000');
 })
@@ -217,8 +219,8 @@ app.post('/block/', async (req, res) => {
   if (r._address === '' || r._address === undefined || 
     !r.star.dec|| typeof r.star.dec !== 'string' ||
     !r.star.ra || typeof r.star.ra !== 'string' ||
-    !r.star.story || typeof r.star.story !== 'string' || new Buffer(r.star.story).length > 500) {
-    res.send('Sorry, we experienced an error. Make sure that the data for all fields are strings and are not empty. Check the README.md for the endpoint documentation')
+    !r.star.story || typeof r.star.story !== 'string' || new Buffer(r.star.story).length > 500 || !checkASCII(r.star.story)) {
+    res.send('Sorry, we experienced an error. Make sure that the data for all fields are strings and are not empty. Check the README.md for the endpoint documentation. Make sure your story contains only ASCII-format input.')
   }
   else {
     let value = await starRequest(r._address);
@@ -231,7 +233,8 @@ app.post('/block/', async (req, res) => {
         star: {
           ra: r.star.ra,
           dec: r.star.dec,
-          story:  new Buffer(r.star.story).toString('hex')
+          story:  new Buffer(r.star.story).toString('hex'),
+          storyDecoded: r.star.story
         }
       }
       let success = await chain.addBlock(new Block(starData))
