@@ -130,7 +130,7 @@ Users can also query star and block data as follows (using a service like Postma
 /stars/height/[height]. E.g.:
 
 ```
-curl http://localhost:8000/stars/height/2
+curl http://localhost:8000/stars/height:2
 
 ```
 
@@ -138,7 +138,7 @@ curl http://localhost:8000/stars/height/2
 /stars/hash/[hash]. E.g.:
 
 ```
-curl http://localhost:8000/stars/hash/thisISaFakeHASh123123323
+curl http://localhost:8000/stars/hash:thisISaFakeHASh123123323
 
 ```
 
@@ -146,6 +146,6 @@ curl http://localhost:8000/stars/hash/thisISaFakeHASh123123323
 /stars/address/[address]. E.g.:
 
 ```
-curl http://localhost:8000/stars/address/ThISiSaFaKEADdreSs123345566
+curl http://localhost:8000/stars/address:ThISiSaFaKEADdreSs123345566
 
 ```

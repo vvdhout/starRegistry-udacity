@@ -93,21 +93,67 @@ app.post('/requestValidation/', (req, res) => {
   }
   else {
       const address = req.body._address;
-      const requestTimeStamp = new Date().getTime().toString().slice(0,-3);
-      const validationWindow = 300;
-      const message = `${address}:${requestTimeStamp}:starRegistry`;
-      const validationData = {
-        address,
-        message,
-        requestTimeStamp,
-        validationWindow
-      }
-      dbS.put(address, validationData, function(err) {
+      dbS.get(address, function(err, value) {
         if(err) {
-          console.log(`We were unable to create a requestBlock for the address ${address} because we experienced a PUT error.`)
+          const validationWindow = 300;
+          const requestTimeStamp = new Date().getTime().toString().slice(0,-3);
+          const message = `${address}:${requestTimeStamp}:starRegistry`;
+          const validationData = {
+            address,
+            message,
+            requestTimeStamp,
+            validationWindow
+          }
+          dbS.put(address, validationData, function(err) {
+            if(err) {
+              console.log(`We were unable to create a requestBlock for the address ${address} because we experienced a PUT error.`)
+            }
+            else {
+              res.send(validationData);
+            }
+          })
         }
         else {
-          res.send(validationData);
+          const timeNow = new Date().getTime().toString().slice(0,-3);
+          const newValidationWindow = (Number(value.requestTimeStamp) + 300) - Number(timeNow);
+          if(newValidationWindow < 0) {
+            const requestTimeStamp = new Date().getTime().toString().slice(0,-3);
+            const validationWindow = 300;
+            const message = `${address}:${requestTimeStamp}:starRegistry`;
+            const validationData = {
+              address,
+              message,
+              requestTimeStamp,
+              validationWindow
+            }
+            dbS.put(address, validationData, function(err) {
+              if(err) {
+                console.log(`We were unable to create a requestBlock for the address ${address} because we experienced a PUT error.`)
+              }
+              else {
+                res.send(validationData);
+              }
+            })
+          }
+          else {
+            const requestTimeStamp = value.requestTimeStamp;
+            const validationWindow = newValidationWindow.toString();
+            const message = value.message;
+            const validationData = {
+              address,
+              message,
+              requestTimeStamp,
+              validationWindow
+            }
+            dbS.put(address, validationData, function(err) {
+              if(err) {
+                console.log(`We were unable to create a requestBlock for the address ${address} because we experienced a PUT error.`)
+              }
+              else {
+                res.send(validationData);
+              }
+            })
+          }
         }
       })
     }
