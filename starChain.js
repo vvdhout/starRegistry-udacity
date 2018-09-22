@@ -179,8 +179,8 @@ app.post('/message-signature/validate/', async (req, res) => {
           let message = starRequestValue.message;
           let timeNow = new Date().getTime().toString().slice(0,-3);
           let timeRequest = starRequestValue.requestTimeStamp;
-          let validWindow = starRequestValue.validationWindowInMin;
-          let timeDif = timeNow - (timeRequest + (validWindow));
+          let newValidationWindow = (Number(starRequestValue.requestTimeStamp) + 300) - Number(timeNow);
+          let timeDif = timeNow - (timeRequest + 300);
           if(timeDif > 0) {
             res.send('Unforunately, the time period in which you were able to verify you address has passed. You can start a new request if you please.')
           }
@@ -195,7 +195,7 @@ app.post('/message-signature/validate/', async (req, res) => {
                       address,
                       timeRequest,
                       message,
-                      validationWindow: validWindow,
+                      validationWindow: newValidationWindow,
                       messageSignature: "valid"
                     }
               }
